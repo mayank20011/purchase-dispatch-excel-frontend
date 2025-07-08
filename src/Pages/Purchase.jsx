@@ -31,7 +31,7 @@ const Purchase = ({ setIsLogedIn }) => {
     } else {
       setLoading(true);
       const data = {
-        Date: new Date().toISOString().split('T')[0],
+        Date: new Date().toLocaleDateString('en-GB'),
         Volume: formData.get("volume"),
         FAT: fat,
         SNF: snf,
