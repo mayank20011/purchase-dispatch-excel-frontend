@@ -34,7 +34,7 @@ const Signup = () => {
     const dataToSend = { name, email, password };
 
     axios
-      .post("http://localhost:5000/api/v1/user/signup", dataToSend)
+      .post("https://purchase-dispatch-excel.vercel.app/api/v1/user/signup", dataToSend)
       .then((res) => {
         toast.success("Account created successfully!");
         setLoading(false);

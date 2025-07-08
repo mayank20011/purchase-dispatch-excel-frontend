@@ -39,7 +39,7 @@ const Purchase = ({ setIsLogedIn }) => {
         sheet: formData.get("purchasingFrom"),
       };
       axios
-        .post("http://localhost:5000/api/v1/sendDataToSheet", data, {
+        .post("https://purchase-dispatch-excel.vercel.app/api/v1/sendDataToSheet", data, {
           headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`,
           }

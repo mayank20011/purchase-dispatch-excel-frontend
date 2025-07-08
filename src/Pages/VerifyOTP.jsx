@@ -14,7 +14,6 @@ const VerifyOTP = () => {
     e.preventDefault();
     const form = e.target;
     const otp = form.otp.value.trim();
-    console.log({ email, otp });
     if (otp.length == 0) {
       toast.error("Enter OTP");
     } else if (email == null) {
@@ -22,14 +21,19 @@ const VerifyOTP = () => {
     } else {
       setLoading(true);
       axios
-        .post("http://localhost:5000/api/v1/user/verify-otp", { email, otp })
+        .post("https://purchase-dispatch-excel.vercel.app/api/v1/user/verify-otp", { email, otp })
         .then((res) => {
           setLoading(false);
           navigate(`/reset-password/${encodeURIComponent(email)}`);
           toast.success("OTP Verified");
         })
         .catch((err) => {
+          let errorMessage = "Something Went Wrong";
+          if (err.status == 400 || err.status == 404) {
+            errorMessage = err.response.data.message;
+          }
           setLoading(false);
+          toast.error(errorMessage);
         });
     }
   }

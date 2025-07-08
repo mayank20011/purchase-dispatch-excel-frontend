@@ -20,7 +20,7 @@ const Login = ({ setIsLogedIn }) => {
     };
 
     axios
-      .post("http://localhost:5000/api/v1/user/login", dataToSend)
+      .post("https://purchase-dispatch-excel.vercel.app/api/v1/user/login", dataToSend)
       .then((res) => {
         setLoading(false);
         setIsLogedIn(true);

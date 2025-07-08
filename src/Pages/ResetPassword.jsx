@@ -18,16 +18,19 @@ const ResetPassword = () => {
     } else if (password !== confirmPassword) {
       toast.error("Password and Confirm Password is not matching");
     } else {
+      setLoading(true);
       axios
-        .post(`http://localhost:5000/api/v1/user/reset-password`, {
+        .post(`https://purchase-dispatch-excel.vercel.app/api/v1/user/reset-password`, {
           email,
           password,
         })
         .then((res) => {
+          setLoading(false);
           toast.success("Password Reset Successfully");
           navigate("/login");
         })
         .catch((err) => {
+          setLoading(false);
           let errorMessage = "Something Went Wrong";
           console.log(err);
           if (err.status == 400 || err.status == 404 || err.status == 500) {
@@ -54,14 +57,14 @@ const ResetPassword = () => {
           Change Your Password
         </h1>
         <input
-          type="text"
+          type="password"
           className="border outline-none border-slate-400 px-4 py-2 rounded-md"
           required
           placeholder="Enter new Password ..."
           name="password"
         />
         <input
-          type="text"
+          type="password"
           className="border outline-none border-slate-400 px-4 py-2 rounded-md"
           required
           placeholder="Confirm New Password ..."
