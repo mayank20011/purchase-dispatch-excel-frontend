@@ -3,3 +3,7 @@
 .custom-container{
   @apply container max-w-[1200px] w-[90%] sm:w-4/5 mx-auto;
 }
+
+/* *{
+  border:1px solid black;
+} */
