@@ -1,7 +1,7 @@
 import Navbar from "../Components/Navbar";
 import { toast } from "react-toastify";
 import { purchasingFrom } from "../pageData/PurchaseData";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,11 +11,17 @@ const Purchase = ({ setIsLogedIn }) => {
   const [fat, setFat] = useState("");
   const [clr, setClr] = useState("");
   const [snf, setSnf] = useState(0);
-
+  console.log(fat);
+  console.log(clr);
+  console.log(snf);
   const calculateSNF = () => {
-    const snfValue = clr / 4 + (fat / 100) * 0.2 + 0.66;
+    const snfValue = clr / 4 + fat * 0.2 + 0.66;
     setSnf(snfValue);
   };
+
+  useEffect(() => {
+    calculateSNF();
+  }, [fat, clr]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,7 +37,7 @@ const Purchase = ({ setIsLogedIn }) => {
     } else {
       setLoading(true);
       const data = {
-        Date: new Date().toLocaleDateString('en-GB'),
+        Date: new Date().toLocaleDateString("en-GB"),
         Volume: formData.get("volume"),
         FAT: fat,
         SNF: snf,
@@ -39,20 +45,25 @@ const Purchase = ({ setIsLogedIn }) => {
         sheet: formData.get("purchasingFrom"),
       };
       axios
-        .post("https://purchase-dispatch-excel.vercel.app/api/v1/sendDataToSheet", data, {
-          headers:{
-            Authorization:`Bearer ${localStorage.getItem("token")}`,
+        .post(
+          "https://purchase-dispatch-excel.vercel.app/api/v1/sendDataToSheet",
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           }
-        })
+        )
         .then((res) => {
           setLoading(false);
           toast.success("Data Saved Successfully");
+          e.target.clear();
         })
         .catch((err) => {
           let errorMessage = "Something went wrong";
           if (err.status == 400 || err.status == 500 || err.status == 403) {
             errorMessage = err.response.data.message;
-            if(err.status==403){
+            if (err.status == 403) {
               localStorage.clear();
               navigate("/login");
             }
@@ -115,7 +126,6 @@ const Purchase = ({ setIsLogedIn }) => {
               value={fat}
               onChange={(e) => {
                 setFat(e.target.value);
-                calculateSNF();
               }}
             />
           </div>
@@ -132,7 +142,6 @@ const Purchase = ({ setIsLogedIn }) => {
               value={clr}
               onChange={(e) => {
                 setClr(e.target.value);
-                calculateSNF();
               }}
             />
           </div>

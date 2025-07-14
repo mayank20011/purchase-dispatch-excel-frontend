@@ -80,20 +80,6 @@ const Dispatch = ({ setIsLogedIn }) => {
             <h1 className="text-2xl sm:text-4xl font-bold text-center">
               Dispatch products
             </h1>
-            <div className="flex flex-col gap-2">
-              <h1>Select Client :-</h1>
-              <select
-                name="client"
-                id="company selection"
-                className="border outline-none px-2 py-2 rounded-md"
-              >
-                {clientName.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div className="flex flex-col ga-2">
               <label htmlFor="company">Select Company :-</label>
               <select
@@ -105,6 +91,20 @@ const Dispatch = ({ setIsLogedIn }) => {
                 {comapnies.map((obj) => (
                   <option key={obj.name} value={obj.name}>
                     {obj.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1>Select Client :-</h1>
+              <select
+                name="client"
+                id="company selection"
+                className="border outline-none px-2 py-2 rounded-md"
+              >
+                {clientName.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
@@ -123,6 +123,7 @@ const Dispatch = ({ setIsLogedIn }) => {
                     placeholder="Enter Quantity"
                     name={product}
                     className="border outline-none px-2 py-2 rounded-md"
+                    onWheel={(e)=>{e.target.blur()}}
                   />
                 </div>
               ))}
