@@ -1,11 +1,18 @@
 import Navbar from "../Components/Navbar";
 import { comapnies } from "../pageData/DispatchData";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { clientName } from "../pageData/DispatchData";
 import { toast } from "react-toastify";
 import axios from "axios";
+import Modal from "../Components/Modal.jsx";
 
 const Dispatch = ({ setIsLogedIn }) => {
+  const [extractedFormData, setExtractedFormData] = useState({});
+  const [extractedfilledProduct, setExtractedfilledProduct] = useState({});
+  let data = {};
+  let filledproduct = {};
+  const form = useRef(null);
+  const [openModal, setOpenModal] = useState(false);
   const [companySelected, setCompanySelected] = useState("Vardaan");
   const [productsList, setProductsList] = useState(comapnies[0].products);
   const [loading, setLoading] = useState(false);
@@ -19,11 +26,44 @@ const Dispatch = ({ setIsLogedIn }) => {
     });
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    let filledproduct = {};
+  function sendDataToSheet(){
+    console.log(extractedFormData);
+    console.log(extractedfilledProduct);
+   setLoading(true);
+      axios
+        .post(
+          "https://purchase-dispatch-excel.vercel.app/api/v1/sendDataToSheet/dispatch-sheet",
+          {
+            Date: new Date().toLocaleDateString("en-GB"),
+            client: extractedFormData.client,
+            company: extractedFormData.company,
+            products: extractedfilledProduct,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        )
+        .then((res) => {
+          toast.success("Created Successfully");
+          setLoading(false);
+          setOpenModal(false);
+          form.current.reset();
+        })
+        .catch((err) => {
+          let errorMessage = "Something went wrong";
+          if (err.status == 400 || err.status == 500) {
+            errorMessage = err.response.data.message;
+          }
+          setLoading(false);
+          toast.error(errorMessage);
+        });
+  }
+
+  function handleFormSubmitButtonClick() {
+    const formData = new FormData(form.current);
+    data = Object.fromEntries(formData);
     for (const key in data) {
       if (key != "client" && key != "company") {
         if (data[key].length != 0) {
@@ -36,34 +76,9 @@ const Dispatch = ({ setIsLogedIn }) => {
     } else if (Object.keys(filledproduct).length == 0) {
       toast.error("Enter Atleast 1 Product");
     } else {
-      setLoading(true);
-      axios
-        .post(
-          "https://purchase-dispatch-excel.vercel.app/api/v1/sendDataToSheet/dispatch-sheet",
-          {
-            Date: new Date().toLocaleDateString("en-GB"),
-            client: data.client,
-            company: data.company,
-            products: filledproduct,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        )
-        .then((res) => {
-          toast.success("Created Successfully");
-          setLoading(false);
-        })
-        .catch((err) => {
-          let errorMessage = "Something went wrong";
-          if (err.status == 400 || err.status == 500) {
-            errorMessage = err.response.data.message;
-          }
-          setLoading(false);
-          toast.error(errorMessage);
-        });
+      setExtractedFormData(data);
+      setExtractedfilledProduct(filledproduct);
+      setOpenModal(true);
     }
   }
 
@@ -74,8 +89,8 @@ const Dispatch = ({ setIsLogedIn }) => {
         <div className="flex w-full rounded-2xl overflow-hidden">
           <div className="none lg:w-2/5 bg-pink-400"></div>
           <form
-            onSubmit={handleSubmit}
             className="w-full lg:w-3/5 p-6 flex flex-col bg-slate-200 gap-6"
+            ref={form}
           >
             <h1 className="text-2xl sm:text-4xl font-bold text-center">
               Dispatch products
@@ -123,12 +138,14 @@ const Dispatch = ({ setIsLogedIn }) => {
                     placeholder="Enter Quantity"
                     name={product}
                     className="border outline-none px-2 py-2 rounded-md"
-                    onWheel={(e)=>{e.target.blur()}}
+                    onWheel={(e) => {
+                      e.target.blur();
+                    }}
                   />
                 </div>
               ))}
             </div>
-            <button
+            {/* <button
               type="submit"
               className={`rounded-2xl hover:scale-95 transition py-2 ${
                 loading
@@ -142,10 +159,84 @@ const Dispatch = ({ setIsLogedIn }) => {
               ) : (
                 <p className="mx-auto">Dispatch</p>
               )}
+            </button> */}
+            <button
+              type="button"
+              onClick={() => {
+                handleFormSubmitButtonClick();
+              }}
+              className="rounded-2xl hover:scale-95 transition py-2 bg-pink-400 text-white cursor-pointer shadow-[4px_3px_2px_black]"
+            >
+              Submit
             </button>
           </form>
         </div>
       </div>
+      {/* for confirmation modal */}
+      <Modal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+        }}
+      >
+        <div className="flex flex-col gap-4 text-center">
+          <i className="fa-solid fa-check text-6xl text-green-600 mx-auto"></i>
+          <h3 className="text-3xl font-bold">Confirm Dispatch</h3>
+          <div className="text-left flex w-full flex-col gap-2">
+            <h3 className="text-xl font-semibold">
+              Name:{" "}
+              <span className="text-green-600">
+                {extractedFormData?.client}
+              </span>
+            </h3>
+            <h3 className="text-xl font-semibold">
+              Company: <span className="text-green-600">{companySelected}</span>
+            </h3>
+          </div>
+          <p className="text-left text-xl font-semibold">Products: </p>
+          <div className="flex flex-col gap-2 max-h-[300px] overflow-auto text-left">
+            {Object.entries(extractedfilledProduct).map(([key, value]) => (
+              <p key={key} className="bg-slate-100 p-2 rounded-md">
+                <strong>{key}:</strong> {value}
+              </p>
+            ))}
+          </div>
+          <div className="w-full grid gap-4 grid-cols-2">
+            <button
+              className={`px-4 py-3 rounded-2xl transition flex items-center gap-2 justify-center ${
+                loading
+                  ? "text-black/50 bg-slate-200 cursor-not-allowed"
+                  : "cursor-pointer hover:scale-95 text-white bg-red-600"
+              }`}
+              disabled={loading}
+              onClick={() => {
+                setOpenModal(false);
+              }}
+            >
+              <p className="font-semibold -mt-1">Cancel</p>
+              <i className="fa-solid fa-xmark text-lg" />
+            </button>
+            <button
+              className={`px-4 py-3 rounded-2xl  transition flex items-center gap-2 justify-center ${
+                loading
+                  ? "text-black/50 bg-slate-200 cursor-not-allowed"
+                  : "cursor-pointer hover:scale-95 text-white bg-green-600 "
+              }`}
+              disabled={loading}
+              onClick={sendDataToSheet}
+            >
+              {loading ? (
+                <p className="p-2 rounded-full border-2 border-t-0 border-l-0 animate-spin"></p>
+              ) : (
+                <>
+                  <p className="font-semibold -mt-1">Save</p>
+                  <i className="fa-solid fa-check text-lg" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
